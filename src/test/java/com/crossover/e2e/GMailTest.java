@@ -40,6 +40,8 @@ public class GMailTest {
         * */
         driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
 
+        driver.get("https://mail.google.com/");
+
         properties.load(new FileReader(new File("test.properties")));
     }
 
@@ -62,6 +64,8 @@ public class GMailTest {
         driver.findElement(By.cssSelector(".T-I.J-J5-Ji.T-I-KE.L3")).click();
         //WebElement composeElement = driver.findElement(By.xpath("//*[@role='button' and (.)='COMPOSE']"));
         //composeElement.click();
+        WebElement composeWindow = driver.findElement(By.id(":mz"));
+        Assert.assertTrue(composeWindow.isDisplayed());
 
         Thread.sleep(1000);
 
@@ -135,7 +139,9 @@ public class GMailTest {
     }
 
     private void logInGmail() throws InterruptedException {
-        driver.get("https://mail.google.com/");
+        WebElement loginPage = driver.findElement(By.id("headingText"));
+        Assert.assertEquals("Login", loginPage.getText());
+
         WebElement userElement = driver.findElement(By.id("identifierId"));
         userElement.sendKeys(properties.getProperty("username"));
 
@@ -153,6 +159,8 @@ public class GMailTest {
          **/
         waitForLoad(driver);
 
+        String inbox = driver.findElement(By.cssSelector(".gb_b")).getAttribute("aria-label");
+        Assert.assertEquals("Google Apps", inbox);
     }
 
     private WebElement waitElement(WebDriver driver, By elementIdentifier){
