@@ -1,34 +1,37 @@
 package com.crossover.e2e;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import com.google.common.base.Function;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class GMailTest extends TestCase {
+import java.io.File;
+import java.io.FileReader;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+/*
+*
+* NOTE: https://seleniumhq.github.io/docs/worst.html: GMAIL, EMAIL, AND FACEBOOK LOGINS
+* */
+public class GMailTest {
+    private static final String A_SUBJECT = "This is a subject...";
+    private static final String A_BODY = "This is a body...";
+    private static final String TEST_FILE = "/test-file.txt";
+    private static final String DRIVER_LOCATION = "D:\\EricDantas\\Crossover\\QA\\chromedriver_win32\\chromedriver.exe";
     private WebDriver driver;
     private Properties properties = new Properties();
 
+    @Before
     public void setUp() throws Exception {
-        System.setProperty("webdriver.chrome.driver", "D:\\EricDantas\\Crossover\\QA\\chromedriver_win32\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", DRIVER_LOCATION);
         driver = new ChromeDriver();
 
         /*
@@ -40,35 +43,21 @@ public class GMailTest extends TestCase {
         properties.load(new FileReader(new File("test.properties")));
     }
 
-    public void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         driver.quit();
     }
 
     @Test
     public void testSendEmail() throws Exception {
-        driver.get("https://mail.google.com/");
-        WebElement userElement = driver.findElement(By.id("identifierId"));
-        userElement.sendKeys(properties.getProperty("username"));
 
-        driver.findElement(By.id("identifierNext")).click();
+        /* TASK 1: Log to Gmail */
+        logInGmail();
 
-        Thread.sleep(1000);
-
-        WebElement passwordElement = driver.findElement(By.name("password"));
-        passwordElement.sendKeys(properties.getProperty("password"));
-        driver.findElement(By.id("passwordNext")).click();
-
-        Thread.sleep(1000);
-
-        /*
-        * BUG FIX 2:
-        *     Waiting for full load gmail inbox page
-        **/
-        waitForLoad(driver);
-
+        /* TASK 2: Compose an email with unique subject, body, and attachment */
         /*
         * BUG FIX 3:
-        *     Clicking in Compose (for non english cases)
+        *     Clicking on Compose (for non english cases)
         * */
         driver.findElement(By.cssSelector(".T-I.J-J5-Ji.T-I-KE.L3")).click();
         //WebElement composeElement = driver.findElement(By.xpath("//*[@role='button' and (.)='COMPOSE']"));
@@ -82,14 +71,14 @@ public class GMailTest extends TestCase {
 
         /* Type a subject */
         driver.findElement(By.name("subjectbox")).clear();
-        driver.findElement(By.name("subjectbox")).sendKeys(String.format("This is a subject..."));
+        driver.findElement(By.name("subjectbox")).sendKeys(A_SUBJECT);
 
         Thread.sleep(1000);
 
         /* Type a body */
         driver.findElement(By.cssSelector(".Am.Al.editable.LW-avf")).click();
         driver.findElement(By.cssSelector(".Am.Al.editable.LW-avf")).clear();
-        driver.findElement(By.cssSelector(".Am.Al.editable.LW-avf")).sendKeys(String.format("This is a body..."));
+        driver.findElement(By.cssSelector(".Am.Al.editable.LW-avf")).sendKeys(A_BODY);
 
         Thread.sleep(1000);
 
@@ -97,97 +86,92 @@ public class GMailTest extends TestCase {
         //driver.findElement(By.cssSelector(".a1.aaA.aMZ")).click();
         //WebElement chooseFile = driver.findElement((By.cssSelector(".a1.aaA.aMZ")));
 
-        createSomeFile();
-
         Thread.sleep(1000);
-        //chooseFile.sendKeys("C:\\selenium-tests\\test-file.txt");
 
-        WebElement button2 = waitsss(driver, By.name("Filedata"));
-        button2.sendKeys("C:\\selenium-tests\\test-file.txt");
+        File fileToBeAttached = new File(this.getClass().getResource(TEST_FILE).getFile());
+
+        WebElement webElement = waitElement(driver, By.name("Filedata"));
+        webElement.sendKeys(fileToBeAttached.getAbsolutePath());
 
         Thread.sleep(3000);
 
-        /* Sending email... */
+        /* TASK 3: Send the email to the same account which was used to login (from and to addresses would be the same) */
+        /*
+         * BUG FIX 4:
+         *     Clicking on Send (for non english cases)
+         * */
         driver.findElement(By.cssSelector(".T-I.J-J5-Ji.aoO.T-I-atl.L3")).click();
         //driver.findElement(By.xpath("//*[@role='button' and text()='Send']")).click();
 
         Thread.sleep(3000);
 
-        /* Wait for email and check it */
-
-        List<WebElement> emails = driver.findElements(By.xpath("//*[@class='yW']/span"));
-        System.out.println(emails.size());
+        /* TASK 4: Wait for the email to arrive in the Inbox */
+        /* Searching email and click on it */
+        List<WebElement> emails = driver.findElements(By.xpath("//*[@class='y6']/span"));
         for (WebElement we : emails) {
-            System.out.println(we.getText());
+            if (we.getText().equals(A_SUBJECT)) {
+                /* TASK 5: Open the received email */
+                driver.findElement(By.cssSelector(".xY.a4W")).click();
+                waitForLoad(driver);
 
-            if (we.getText().equals("This is a subject...")) //to click on a specific mail.
-            {
-                we.click();
+                /* TASK 6: Verify the subject, body and attachment name of the received email */
+                /* Assert to SUBJECT */
+                String subject = driver.findElement(By.className("hP")).getText();
+                Assert.assertEquals(A_SUBJECT, subject);
+
+                /* Assert to BODY */
+                String body = driver.findElement(By.cssSelector(".a3s.aXjCH")).getText();
+                Assert.assertEquals(A_BODY, body);
+
+                /* Assert to ATTACHMENT */
+                String attachedName = driver.findElement(By.cssSelector(".aV3.zzV0ie")).getText();
+                Assert.assertEquals(fileToBeAttached.getName(), attachedName);
+
+                Thread.sleep(1000);
+
                 break;
             }
         }
     }
 
-    public void createSomeFile() throws IOException {
-        String str = "Crossover online hiring event...";
-        byte[] strToBytes = str.getBytes();
+    private void logInGmail() throws InterruptedException {
+        driver.get("https://mail.google.com/");
+        WebElement userElement = driver.findElement(By.id("identifierId"));
+        userElement.sendKeys(properties.getProperty("username"));
 
-        Path path = Paths.get("C:\\selenium-tests");
-        boolean pathExists = Files.exists(path);
-        if (!pathExists) {
-            try {
-                Path newDir = Files.createDirectory(path);
-            } catch (FileAlreadyExistsException e){
-                // the directory already exists.
-                path = Paths.get("C:\\selenium-tests\\test-file.txt");
-                pathExists = Files.exists(path);
-                if (!pathExists) {
-                    try {
-                        Path newFile = Files.createFile(path);
-                        Files.write(path, strToBytes);
+        driver.findElement(By.id("identifierNext")).click();
 
-                    } catch (FileAlreadyExistsException f) {
-                        Files.write(path, strToBytes);
-                    }
-                }
+        Thread.sleep(2000);
 
-            } catch (IOException e) {
-                //something else went wrong
-                e.printStackTrace();
-            }
-        } else {
-            path = Paths.get("C:\\selenium-tests\\test-file.txt");
-            pathExists = Files.exists(path);
-            if (!pathExists) {
-                try {
-                    Path newFile = Files.createFile(path);
-                    Files.write(path, strToBytes);
-                } catch (FileAlreadyExistsException f) {
-                    Files.write(path, strToBytes);
-                }
-            }
-        }
+        WebElement passwordElement = driver.findElement(By.name("password"));
+        passwordElement.sendKeys(properties.getProperty("password"));
+        driver.findElement(By.id("passwordNext")).click();
+
+        /*
+         * BUG FIX 2:
+         *     Waiting for full load gmail inbox page
+         **/
+        waitForLoad(driver);
+
     }
 
-    private WebElement waitsss(WebDriver driver, By elementIdentifier){
+    private WebElement waitElement(WebDriver driver, By elementIdentifier){
         Wait<WebDriver> wait =
-                new FluentWait<WebDriver>(driver).withTimeout(60, TimeUnit.SECONDS)
+                new FluentWait<>(driver).withTimeout(60, TimeUnit.SECONDS)
                         .pollingEvery(1, TimeUnit.SECONDS)
                         .ignoring(NoSuchElementException.class);
 
-        return wait.until(new Function<WebDriver, WebElement>() {
-            public WebElement apply(WebDriver driver) {
-                return driver.findElement(elementIdentifier);
-            }
+        return wait.until(driver1 -> {
+            assert driver1 != null;
+            return driver1.findElement(elementIdentifier);
         });
     }
 
     private void waitForLoad(WebDriver driver) {
-        ExpectedCondition<Boolean> pageLoadCondition = new ExpectedCondition<Boolean>() {
-            public Boolean apply(WebDriver driver) {
-                return ((JavascriptExecutor)driver)
-                        .executeScript("return document.readyState").equals("complete");
-            }
+        ExpectedCondition<Boolean> pageLoadCondition = driver1 -> {
+            assert driver1 != null;
+            return ((JavascriptExecutor) driver1)
+                    .executeScript("return document.readyState").equals("complete");
         };
 
         WebDriverWait wait = new WebDriverWait(driver, 30);
