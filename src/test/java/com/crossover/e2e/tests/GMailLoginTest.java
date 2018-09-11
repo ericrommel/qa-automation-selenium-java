@@ -1,5 +1,6 @@
-package com.crossover.e2e;
+package com.crossover.e2e.tests;
 
+import com.crossover.e2e.poms.GMailLogin;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

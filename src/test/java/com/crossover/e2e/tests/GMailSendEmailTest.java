@@ -1,5 +1,8 @@
-package com.crossover.e2e;
+package com.crossover.e2e.tests;
 
+import com.crossover.e2e.poms.GMailCheckEmail;
+import com.crossover.e2e.poms.GMailLogin;
+import com.crossover.e2e.poms.GMailSendEmail;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

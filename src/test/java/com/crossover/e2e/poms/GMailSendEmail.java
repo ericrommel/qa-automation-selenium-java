@@ -1,4 +1,4 @@
-package com.crossover.e2e;
+package com.crossover.e2e.poms;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -8,7 +8,7 @@ import java.io.File;
 public class GMailSendEmail {
     private WebDriver driver;
 
-    private By composeWindow = By.id(":mz");
+    private By composeWindow = By.name("to"); // If To Field appeared, the compose window has opened
     private By toField = By.name("to");
     private By subjectBox = By.name("subjectbox");
     private By body = By.cssSelector(".Am.Al.editable.LW-avf");

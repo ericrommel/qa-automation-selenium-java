@@ -1,12 +1,7 @@
-package com.crossover.e2e;
+package com.crossover.e2e.poms;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.support.ui.Wait;
-import java.util.concurrent.TimeUnit;
 
 public class GMailLogin {
     private WebDriver driver;

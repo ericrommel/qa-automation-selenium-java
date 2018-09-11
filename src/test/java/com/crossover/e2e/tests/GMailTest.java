@@ -1,4 +1,4 @@
-package com.crossover.e2e;
+package com.crossover.e2e.tests;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -64,7 +64,7 @@ public class GMailTest {
         driver.findElement(By.cssSelector(".T-I.J-J5-Ji.T-I-KE.L3")).click();
         //WebElement composeElement = driver.findElement(By.xpath("//*[@role='button' and (.)='COMPOSE']"));
         //composeElement.click();
-        WebElement composeWindow = driver.findElement(By.id(":mz"));
+        WebElement composeWindow = driver.findElement(By.name("to")); // If To Field appeared, the compose window had opened
         Assert.assertTrue(composeWindow.isDisplayed());
 
         Thread.sleep(1000);
